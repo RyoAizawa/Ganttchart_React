@@ -6,7 +6,7 @@ export const ChartTable = (props) => {
     // ガントチャートに出力する日数
     const columnsValue = 30;
     // 当日から何日前からの日付けを出力するか指定
-    const daysAgo = 7;
+    const daysAgo = 15;
 
     // テーブルヘッダ表示の日付を出力
     const today = new Date();
