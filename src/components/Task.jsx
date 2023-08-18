@@ -1,19 +1,30 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 
 export const Task = (props) => {
+    const [planDiffDay, setPlanDiffDay] = useState();
+    const [actDiffDay, setActDiffDay] = useState();
+
     let startDatePlanRef = useRef();
     let endDatePlanRef = useRef();
     let startDateActRef = useRef();
     let endDateActRef = useRef();
-    let colDays = useRef()
-    let planDiffDay = useRef();
-    let actDiffDay = useRef();
-    console.log("hey")
+    let colDays = useRef();
+    console.log(`logTime ... ${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`);
+    console.log(props.task.id)
     useEffect(() => {
-        setPlanDiffDay(props.task.startDatePlan, props.task.endDatePlan);
-        setActDiffDay(props.task.startDateAct, props.task.endDateAct);
-        return () => {};
+        return () => {
+            let diffDay = calcDiffDay(
+                props.task.startDatePlan,
+                props.task.endDatePlan
+            );
+            setPlanDiffDay(diffDay);
+            diffDay = calcDiffDay(
+                props.task.startDateAct,
+                props.task.endDateAct
+            );
+            setActDiffDay(diffDay);
+        };
     }, []);
 
     // YYYY/MM/DDからYYYY-MM-DDにフォーマットするメソッド
@@ -50,14 +61,16 @@ export const Task = (props) => {
                 );
             }
             // 開始、終了の日付けがセットされているか確認
-            if (startDatePlanRef.current.value !== "" &&
+            if (
+                startDatePlanRef.current.value !== "" &&
                 endDatePlanRef.current.value !== ""
             ) {
                 // 、予定、実績それぞれの開始/終了がセットされていれば差分を計算する
-                planDiffDay = setPlanDiffDay(
+                const diffDay = calcDiffDay(
                     startDatePlanRef.current.value,
                     endDatePlanRef.current.value
                 );
+                setPlanDiffDay(diffDay);
             }
         } else {
             if (startDateActRef.current.value !== "") {
@@ -66,25 +79,17 @@ export const Task = (props) => {
                     startDateActRef.current.value
                 );
             }
-            if (startDatePlanRef.current.value !== "" &&
+            if (
+                startDatePlanRef.current.value !== "" &&
                 endDatePlanRef.current.value !== ""
             ) {
-                actDiffDay = setActDiffDay(
+                const diffDay = calcDiffDay(
                     startDateActRef.current.value,
                     endDateActRef.current.value
                 );
+                setPlanDiffDay(diffDay);
             }
         }
-    };
-
-    const setPlanDiffDay = (start, end) => {
-        const diffDay = calcDiffDay(start, end);
-        console.log(planDiffDay)
-        planDiffDay.current.innerHTML = diffDay;
-    };
-    const setActDiffDay = (start, end) => {
-        const diffDay = calcDiffDay(start, end);
-        actDiffDay.current.innerHTML = diffDay;
     };
 
     // 設定した開始日、終了日の情報をもとにチャートバーを作成
@@ -139,8 +144,6 @@ export const Task = (props) => {
     //     if (selectedDateCol.length > 0) selectedDateCol.append($(`#${process}Bar_${index}`))
     // }
 
-
-
     return (
         <>
             <tr>
@@ -175,7 +178,7 @@ export const Task = (props) => {
                         onChange={() => checkDate("plan")}
                     />
                 </Td>
-                <Td ref={planDiffDay}></Td>
+                <Td>{planDiffDay}</Td>
                 <Td>
                     <InputDate
                         ref={startDateActRef}
@@ -194,7 +197,7 @@ export const Task = (props) => {
                         onChange={() => checkDate("act")}
                     />
                 </Td>
-                <Td ref={actDiffDay}></Td>
+                <Td>{actDiffDay}</Td>
                 <Td>
                     <div id="planBar_1" className="planBar bar">
                         <div id="progBar_1" className="progBar"></div>
@@ -202,11 +205,11 @@ export const Task = (props) => {
                     <div id="actBar_1" className="actBar bar"></div>
                 </Td>
                 {(function () {
-                    const array = []
-                    props.fullDate.forEach((elem, i) => {
+                    const array = [];
+                    props.fullDateArray.forEach((elem, i) => {
                         array.push(<Td key={i} name={elem}></Td>);
-                    })
-                    colDays = [...array]
+                    });
+                    colDays = [...array];
                     return colDays;
                 })()}
             </tr>
