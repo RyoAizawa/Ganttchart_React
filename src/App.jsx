@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import useSWR from "swr";
 import { createGlobalStyle } from "styled-components";
 import reset from "styled-reset";
 
@@ -13,21 +13,19 @@ const GlobalStyle = createGlobalStyle`
         scroll-behavior: smooth;
     }
 `;
+const fetcher = (...args) => fetch(...args).then(res => res.json())
 
 const App = () => {
-    const [taskData, setTaskData] = useState([]);
-    useEffect(() => {
-        fetch("/api/data")
-            .then((response) => response.json())
-            .then((taskData) => setTaskData(taskData));
-    }, []);
+    const {data, error, isLoading} = useSWR("/api/data", fetcher)
+    if (error) return <div>failed to load</div>
+    if (isLoading) return <div>loading...</div>
 
     return (
         <>
             <GlobalStyle />
             <Header />
             <main>
-                <ChartTable taskData={taskData} />
+                <ChartTable taskData={data} />
             </main>
         </>
     );
