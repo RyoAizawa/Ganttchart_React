@@ -18,12 +18,11 @@ export const Task = (props) => {
 
     useEffect(() => {
         setColDays(createColDays(planSt, planEd, actSt, actEd));
-        return () => {
-            let diffDay = calcDiffDay(planSt, planEd);
-            setPlanDiffDay(diffDay);
-            diffDay = calcDiffDay(actSt, actEd);
-            setActDiffDay(diffDay);
-        };
+        let diffDay = calcDiffDay(planSt, planEd);
+        setPlanDiffDay(diffDay);
+        diffDay = calcDiffDay(actSt, actEd);
+        setActDiffDay(diffDay);
+        return () => {};
     }, []);
 
     // YYYY/MM/DDからYYYY-MM-DDにフォーマットするメソッド
@@ -38,6 +37,7 @@ export const Task = (props) => {
         day: "2-digit",
     });
 
+    // チャート表示箇所のカラム作成・日付けの入力に応じてチャートバーの作成も同時に行うメソッド
     const createColDays = (planStart, planEnd, actStart, actEnd) => {
         const colDaysArray = props.fullDateArray.map((elem, i) => {
             let planBar = "";
@@ -47,9 +47,19 @@ export const Task = (props) => {
                 const formattedStDatePlan = dateTimeFormatJP.format(
                     new Date(planStart)
                 );
+                // カラムに対応した日付けが一致した場合、プランバーの作成
                 if (formattedColDate === formattedStDatePlan) {
+                    const diff = calcDiffDay(planStart, planEnd);
+                    let display = "";
+
+                    if (diff < 1) {
+                        display = "none";
+                    }
                     planBar = (
-                        <PlanBar>
+                        <PlanBar
+                            width={`calc(${100 * diff}% + ${diff * 1 + 1}px)`}
+                            display={`${display}`}
+                        >
                             <ProgBar></ProgBar>
                         </PlanBar>
                     );
@@ -60,18 +70,29 @@ export const Task = (props) => {
                     new Date(actStart)
                 );
                 if (formattedColDate === formattedStDateAct) {
-                    actBar = <ActBar></ActBar>;
+                    const diff = calcDiffDay(actStart, actEnd);
+                    let display = "";
+
+                    if (diff < 1) {
+                        display = "none";
+                    }
+                    actBar = (
+                        <ActBar
+                            width={`calc(${100 * diff}% + ${diff * 1 + 1}px)`}
+                            display={`${display}`}
+                        ></ActBar>
+                    );
                 }
             }
             return (
-                <Td
+                <DateTd
                     ref={(el) => (colDays[i] = el)}
                     key={i}
                     name={formattedColDate}
                 >
                     {planBar}
                     {actBar}
-                </Td>
+                </DateTd>
             );
         });
         return colDaysArray;
@@ -90,35 +111,29 @@ export const Task = (props) => {
 
     // // 日付けがセットされた後の挙動
     const checkDate = (process) => {
-        if (process === "plan") {
-            const planStCurrent = startDatePlanRef.current.value;
-            const planEdCurrent = endDatePlanRef.current.value;
+        const planSt = startDatePlanRef.current.value;
+        const planEd = endDatePlanRef.current.value;
+        const actSt = startDateActRef.current.value;
+        const actEd = endDateActRef.current.value;
 
+        if (process === "plan") {
             // 終了日は開始日以前を設定できないようにする
-            if (planStCurrent !== "") {
-                endDatePlanRef.current.setAttribute("min", planStCurrent);
+            if (planSt !== "") {
+                endDatePlanRef.current.setAttribute("min", planSt);
             }
             // 開始、終了の日付けがセットされているか確認
-            if (planStCurrent !== "" && planEdCurrent !== "") {
-                planSt = planStCurrent;
-                planEd = planEdCurrent;
-
+            if (planSt !== "" && planEd !== "") {
                 // 、予定、実績それぞれの開始/終了がセットされていれば差分を計算する
-                const diffDay = calcDiffDay(planStCurrent, planEdCurrent);
+                const diffDay = calcDiffDay(planSt, planEd);
                 setPlanDiffDay(diffDay);
                 setColDays(createColDays(planSt, planEd, actSt, actEd));
             }
         } else {
-            const actStCurrent = startDateActRef.current.value;
-            const actEdCurrent = endDateActRef.current.value;
-            if (actStCurrent !== "") {
-                endDateActRef.current.setAttribute("min", actStCurrent);
+            if (actSt !== "") {
+                endDateActRef.current.setAttribute("min", actSt);
             }
-            if (actStCurrent !== "" && actEdCurrent !== "") {
-                actSt = actStCurrent;
-                actEd = actEdCurrent;
-
-                const diffDay = calcDiffDay(actStCurrent, actEdCurrent);
+            if (actSt !== "" && actEd !== "") {
+                const diffDay = calcDiffDay(actSt, actEd);
                 setActDiffDay(diffDay);
                 setColDays(createColDays(planSt, planEd, actSt, actEd));
             }
@@ -127,13 +142,6 @@ export const Task = (props) => {
 
     // 設定した開始日、終了日の情報をもとにチャートバーを作成
     const setChartBar = (diffDay, bar, stDate, edDate) => {
-        // もしも差分日数が0かマイナス値になっていた場合はバーを非表示にして早期return
-        if (diffDay < 1) {
-            bar.current.style.display = "none";
-            return;
-        }
-        // 非表示にしたバーを再表示
-        bar.current.style.display = "";
         // チャートの起点を決める
         // colDays.forEach((col) => {
         //     if (col.props.name === dateTimeFormatJP.format(new Date(stDate))) {
@@ -241,11 +249,14 @@ const Td = styled.td`
     text-align: center;
     vertical-align: middle;
 `;
-const TaskTitle = styled.td`
-    padding: 5px;
+
+const DateTd = styled.td`
+    position: relative;
     border: 1px solid #aaa;
     text-align: center;
-    vertical-align: middle;
+`;
+
+const TaskTitle = styled(Td)`
     width: 200px;
 `;
 
@@ -257,14 +268,21 @@ const InputRange = styled.input`
 `;
 
 const PlanBar = styled.div`
-    top: 4px;
-    height: 19px;
+    position: absolute;
+    display: ${(props) => (props.display ? props.display : "block")};
+    width: ${(props) => (props.width ? props.width : "100%")};
+    top: 50%;
+    height: 50%;
+    transform: translateY(-50%);
     background: #93bef3;
     z-index: 1;
 `;
 
 const ActBar = styled.div`
-    top: 17px;
+    position: absolute;
+    display: ${(props) => (props.display ? props.display : "block")};
+    width: ${(props) => (props.width ? props.width : "100%")};
+    bottom: 25%;
     height: 5px;
     background-color: blue;
     border: none;

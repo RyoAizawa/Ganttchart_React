@@ -28,8 +28,6 @@ export const ChartTable = (props) => {
         fullDateArray.push(fullDate);
     })
 
-    console.log("chartTable")
-
     return (
         <>
             <Table>
