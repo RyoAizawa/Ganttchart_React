@@ -10,11 +10,15 @@ export const Task = (props) => {
     const [planDiffDay, setPlanDiffDay] = useState();
     const [actDiffDay, setActDiffDay] = useState();
     const [colDays, setColDays] = useState([]);
+    const [ahead, setAhead] = useState({ text: "" }, { color: "" });
 
-    let startDatePlanRef = useRef();
-    let endDatePlanRef = useRef();
-    let startDateActRef = useRef();
-    let endDateActRef = useRef();
+    const startDatePlanRef = useRef();
+    const endDatePlanRef = useRef();
+    const startDateActRef = useRef();
+    const endDateActRef = useRef();
+    const progBarRange = useRef();
+    const progBar = useRef();
+    const aheadRef = useRef();
 
     useEffect(() => {
         setColDays(createColDays(planSt, planEd, actSt, actEd));
@@ -55,8 +59,15 @@ export const Task = (props) => {
                 }
                 // 終了日がチャート終了日程より以後の場合には終点をチャート日程の末端に合わせる
                 // チャート最終日 - 終了日がプラスになれば差分が0以上で返ってくる
-                if (0 < calcDiffDay(props.fullDateArray[props.fullDateArray.length - 1], planEnd)) {
-                    planEnd = props.fullDateArray[props.fullDateArray.length - 1];
+                if (
+                    0 <
+                    calcDiffDay(
+                        props.fullDateArray[props.fullDateArray.length - 1],
+                        planEnd
+                    )
+                ) {
+                    planEnd =
+                        props.fullDateArray[props.fullDateArray.length - 1];
                 }
                 const formattedStDatePlan = dateTimeFormatJP.format(
                     new Date(planStart)
@@ -75,7 +86,7 @@ export const Task = (props) => {
                             width={`calc(${100 * diff}% + ${diff * 1 + 1}px)`}
                             display={`${display}`}
                         >
-                            <ProgBar></ProgBar>
+                            <ProgBar ref={progBar}></ProgBar>
                         </PlanBar>
                     );
                 }
@@ -84,8 +95,15 @@ export const Task = (props) => {
                 if (calcDiffDay(props.fullDateArray[0], actStart) === 0) {
                     actStart = props.fullDateArray[0];
                 }
-                if (1 <calcDiffDay(props.fullDateArray[props.fullDateArray.length - 1], actEnd)) {
-                    actEnd = props.fullDateArray[props.fullDateArray.length - 1];
+                if (
+                    1 <
+                    calcDiffDay(
+                        props.fullDateArray[props.fullDateArray.length - 1],
+                        actEnd
+                    )
+                ) {
+                    actEnd =
+                        props.fullDateArray[props.fullDateArray.length - 1];
                 }
 
                 const formattedStDateAct = dateTimeFormatJP.format(
@@ -120,6 +138,12 @@ export const Task = (props) => {
                 </DateTd>
             );
         });
+        setAhead({ ...ahead, text: "", color: "" });
+        // 予定よりも終了実績が早ければ先行に〇
+        if (planEnd > actEnd) {
+            setAhead({ ...ahead, text: "〇", color: "#88e5ff" });
+            aheadRef.current.style.backGroundColor = ahead.color;
+        }
         return colDaysArray;
     };
 
@@ -165,50 +189,9 @@ export const Task = (props) => {
         }
     };
 
-    // 設定した開始日、終了日の情報をもとにチャートバーを作成
-    const setChartBar = (diffDay, bar, stDate, edDate) => {
-        // チャートの起点を決める
-        // colDays.forEach((col) => {
-        //     if (col.props.name === dateTimeFormatJP.format(new Date(stDate))) {
-        //         console.log(col);
-        //     }
-        // });
-        // if (stDate < today) {
-        //     // 本日以前の日付けを選んだ場合、起点は本日とする
-        //     selectedDateCol = selectedRow.children(`td[name=${today}]`);
-        // } else if (selectedRow.children(`td[name=${stDate}]`).length < 1) {
-        //     // テーブルにない日付けを開始日に選択した場合、バーを消して早期return
-        //     $(`#${process}Bar_${index}`).css("display", "none");
-        //     return;
-        // }
-        //     // 起点は全ての日付けカラム内の何番目か
-        //     let startColumnIndex = 0
-        //     let columnCount = 0
-        //     selectedRow.children(".col_day").each((i, column) => {
-        //         if (column.isEqualNode(selectedDateCol[0])) {
-        //             startColumnIndex = i
-        //         }
-        //         columnCount = i + 1
-        //     })
-        //     // 差分がバーのチャートバーのカラムサイズとなる
-        //     let barColumCount = diffDay
-        //     // 開始日が本日の日付け以前の場合、開始日から本日までの差分を取得
-        //     if (stDate < today) {
-        //         const diffDayForToday = calcDiffDay(stDate, today)
-        //         barColumCount -= diffDayForToday - 1
-        //     }
-        //     // 差分が起点以降の空きカラム数を超えたらバーのサイズは空きカラムの領域を超えないようにする
-        //     if (barColumCount > (columnCount - startColumnIndex)) {
-        //         barColumCount = columnCount - startColumnIndex
-        //     }
-        //     // 1本分のボーダーサイズを取得
-        //     const border = (selectedDateCol.outerWidth() - selectedDateCol.innerWidth()) / 2
-        //     // 要素の幅+ボーダー*カラム数でバーサイズを計算
-        //     const barSize = ((selectedDateCol.innerWidth() + border) * barColumCount)
-        //     // 起点と終端のpadding = 1px分を調整しバーの幅を設定
-        //     $(`#${process}Bar_${index}`).css("width", `${barSize - 2}px`)
-        //     // 起点の情報を取得出来たらバーを設定した起点に移動
-        //     if (selectedDateCol.length > 0) selectedDateCol.append($(`#${process}Bar_${index}`))
+    // 進捗バーの進退を制御
+    const setProgBar = () => {
+        progBar.current.style.width = `${progBarRange.current.value}%`;
     };
 
     return (
@@ -219,14 +202,23 @@ export const Task = (props) => {
                 <Td>{props.task.name}</Td>
                 <Td>
                     <InputRange
+                        ref={progBarRange}
                         type="range"
                         step="10"
                         min="0"
                         max="100"
                         defaultValue={0}
+                        onChange={() => setProgBar()}
                     />
                 </Td>
-                <Td>進行中</Td>
+                <Td>
+                    <select name="status">
+                        <option value="">未着手</option>
+                        <option value="">進行中</option>
+                        <option value="">保留</option>
+                        <option value="">完了</option>
+                    </select>
+                </Td>
                 <Td>
                     <InputDate
                         ref={startDatePlanRef}
@@ -261,7 +253,9 @@ export const Task = (props) => {
                     />
                 </Td>
                 <Td>{actDiffDay}</Td>
-                <Td></Td>
+                <Td ref={aheadRef} backgroundColor={ahead.color}>
+                    {ahead.text}
+                </Td>
                 {colDays}
             </tr>
         </>
@@ -273,6 +267,8 @@ const Td = styled.td`
     border: 1px solid #aaa;
     text-align: center;
     vertical-align: middle;
+    background: ${(props) =>
+        props.backgroundColor ? props.backgroundColor : "#fff"};
 `;
 
 const DateTd = styled.td`
@@ -316,7 +312,7 @@ const ActBar = styled.div`
 
 const ProgBar = styled.div`
     height: 100%;
-    width: 0px;
+    width: ${(props) => (props.width ? props.width : "0%")};
     background: #ffc135;
 `;
 
