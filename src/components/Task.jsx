@@ -39,14 +39,29 @@ export const Task = (props) => {
 
     // チャート表示箇所のカラム作成・日付けの入力に応じてチャートバーの作成も同時に行うメソッド
     const createColDays = (planStart, planEnd, actStart, actEnd) => {
+        const chartHeadDay = dateTimeFormatJP.format(
+            new Date(props.fullDateArray[0])
+        );
+
         const colDaysArray = props.fullDateArray.map((elem, i) => {
             let planBar = "";
             let actBar = "";
             const formattedColDate = dateTimeFormatJP.format(new Date(elem));
             if (planStart !== "" && planEnd !== "") {
+                // 開始日がチャート開始日程より以前の場合には起点をチャート日程の先頭に合わせる
+                // チャート先頭日 - 開始日がマイナスになれば差分が0で返ってくる
+                if (calcDiffDay(props.fullDateArray[0], planStart) === 0) {
+                    planStart = props.fullDateArray[0];
+                }
+                // 終了日がチャート終了日程より以後の場合には終点をチャート日程の末端に合わせる
+                // チャート最終日 - 終了日がプラスになれば差分が0以上で返ってくる
+                if (0 < calcDiffDay(props.fullDateArray[props.fullDateArray.length - 1], planEnd)) {
+                    planEnd = props.fullDateArray[props.fullDateArray.length - 1];
+                }
                 const formattedStDatePlan = dateTimeFormatJP.format(
                     new Date(planStart)
                 );
+
                 // カラムに対応した日付けが一致した場合、プランバーの作成
                 if (formattedColDate === formattedStDatePlan) {
                     const diff = calcDiffDay(planStart, planEnd);
@@ -66,9 +81,19 @@ export const Task = (props) => {
                 }
             }
             if (actStart !== "" && actEnd !== "") {
+                if (calcDiffDay(props.fullDateArray[0], actStart) === 0) {
+                    actStart = props.fullDateArray[0];
+                }
+                if (1 <calcDiffDay(props.fullDateArray[props.fullDateArray.length - 1], actEnd)) {
+                    actEnd = props.fullDateArray[props.fullDateArray.length - 1];
+                }
+
                 const formattedStDateAct = dateTimeFormatJP.format(
                     new Date(actStart)
                 );
+                if (formattedStDateAct < chartHeadDay) {
+                    actStart = chartHeadDay;
+                }
                 if (formattedColDate === formattedStDateAct) {
                     const diff = calcDiffDay(actStart, actEnd);
                     let display = "";

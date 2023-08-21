@@ -18,10 +18,10 @@ export const TaskHeader = (props) => {
     return (
         <>
             <tr>
-                <Th rowSpan="3" className="fixed">
+                <Th rowSpan="3">
                     No
                 </Th>
-                <Th rowSpan="3" className="fixed">
+                <Th rowSpan="3">
                     作業名
                 </Th>
                 <Th rowSpan="3">担当者</Th>
@@ -64,9 +64,9 @@ export const TaskHeader = (props) => {
                     props.fullDateArray.forEach((elem, i) => {
                         const date = new Date(elem).getDate();
                         colDates.push(
-                            <Th key={i} className="head_dates">
+                            <AddTh key={i}>
                                 {date}
-                            </Th>
+                            </AddTh>
                         );
                     });
                     return colDates;
@@ -86,7 +86,7 @@ export const TaskHeader = (props) => {
                     ];
                     props.fullDateArray.forEach((elem, i) => {
                         const day = new Date(elem).getDay();
-                        colDays.push(<AddTh key={i}>{weekOfDays[day]}</AddTh>);
+                        colDays.push(<AddTh key={i}><Num>{weekOfDays[day]}</Num></AddTh>);
                     });
                     return colDays;
                 })()}
@@ -104,6 +104,12 @@ const Th = styled.th`
 const AddTh = styled.th`
     padding: 5px;
     border: 1px solid #aaa;
+    text-align: center;
+    vertical-align: middle;
+`;
+
+const Num = styled.div`
+    width: 20px;
     text-align: center;
     vertical-align: middle;
 `;
