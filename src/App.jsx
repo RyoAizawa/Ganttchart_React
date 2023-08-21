@@ -1,3 +1,4 @@
+import { useState } from "react";
 import useSWR from "swr";
 import { createGlobalStyle } from "styled-components";
 import reset from "styled-reset";
@@ -16,6 +17,8 @@ const GlobalStyle = createGlobalStyle`
 const fetcher = (...args) => fetch(...args).then(res => res.json())
 
 const App = () => {
+    const [indent, setIndent] = useState(0)
+
     const {data, error, isLoading} = useSWR("/api/data", fetcher)
     if (error) return <div>failed to load</div>
     if (isLoading) return <div>loading...</div>
@@ -23,9 +26,12 @@ const App = () => {
     return (
         <>
             <GlobalStyle />
-            <Header />
+            <Header
+                indent={indent}
+                setIndent={setIndent}
+            />
             <main>
-                <ChartTable taskData={data} />
+                <ChartTable taskData={data} indent={indent} />
             </main>
         </>
     );

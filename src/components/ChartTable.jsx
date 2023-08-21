@@ -1,8 +1,13 @@
+import { useState } from "react"
 import Task from "./Task";
 import TaskHeader from "./TaskHeader";
 import styled from "styled-components";
 
 export const ChartTable = (props) => {
+
+    const [tasks, setTasks] = useState(props.taskData);
+    const [dragIndex, setDragIndex] = useState(null);
+
     // ガントチャートに出力する日数
     const columnsValue = 30;
     // 当日から何日前からの日付けを出力するか指定
@@ -37,11 +42,15 @@ export const ChartTable = (props) => {
                     />
                 </Thead>
                 <Tbody>
-                    {props.taskData.map((task) => {
+                    {tasks.map((task, index) => {
                         return (
                             <Task
                                 key={task.id}
+                                trIndex={index}
                                 task={task}
+                                setTasks={setTasks}
+                                dragIndex={dragIndex}
+                                setDragIndex={setDragIndex}
                                 fullDateArray={fullDateArray}
                             />
                         );

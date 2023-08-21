@@ -1,12 +1,20 @@
 import styled from "styled-components";
 
-export const GlobalHeader = () => {
+export const GlobalHeader = (props) => {
+    const handleClick = (process) => {
+        if (process === "up") {
+            props.setIndent(props.indent++);
+        } else if (process === "down") {
+            props.setIndent(props.indent--);
+        }
+    };
+
     return (
         <>
             <Header>
                 <Wrapper>
-                        <Button>&lt;</Button>
-                        <Button>&gt;</Button>
+                    <Button onClick={() => handleClick("up")}>&lt;</Button>
+                    <Button onClick={() => handleClick("down")}>&gt;</Button>
                 </Wrapper>
             </Header>
         </>
@@ -31,6 +39,5 @@ const Button = styled.button`
     display: block;
     border-radius: 5px;
     padding: 5px 20px;
-
 `;
 export default GlobalHeader;

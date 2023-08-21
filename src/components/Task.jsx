@@ -7,8 +7,7 @@ export const Task = (props) => {
     let actSt = props.task.startDateAct;
     let actEd = props.task.endDateAct;
 
-    const [planDiffDay, setPlanDiffDay] = useState();
-    const [actDiffDay, setActDiffDay] = useState();
+    const [diffDay, setDiffDay] = useState({ plan: 0 }, { act: 0 });
     const [colDays, setColDays] = useState([]);
     const [ahead, setAhead] = useState({ text: "" }, { color: "" });
 
@@ -22,10 +21,9 @@ export const Task = (props) => {
 
     useEffect(() => {
         setColDays(createColDays(planSt, planEd, actSt, actEd));
-        let diffDay = calcDiffDay(planSt, planEd);
-        setPlanDiffDay(diffDay);
-        diffDay = calcDiffDay(actSt, actEd);
-        setActDiffDay(diffDay);
+        const planDiff = calcDiffDay(planSt, planEd);
+        const actDiff = calcDiffDay(actSt, actEd);
+        setDiffDay({ ...diffDay, plan: planDiff, act: actDiff });
         return () => {};
     }, []);
 
@@ -142,7 +140,7 @@ export const Task = (props) => {
         // 予定よりも終了実績が早ければ先行に〇
         if (planEnd > actEnd) {
             setAhead({ ...ahead, text: "〇", color: "#88e5ff" });
-            aheadRef.current.style.backGroundColor = ahead.color;
+            aheadRef.current.style.backgroundColor = ahead.color;
         }
         return colDaysArray;
     };
@@ -173,8 +171,8 @@ export const Task = (props) => {
             // 開始、終了の日付けがセットされているか確認
             if (planSt !== "" && planEd !== "") {
                 // 、予定、実績それぞれの開始/終了がセットされていれば差分を計算する
-                const diffDay = calcDiffDay(planSt, planEd);
-                setPlanDiffDay(diffDay);
+                const diff = calcDiffDay(planSt, planEd);
+                setDiffDay({ ...diffDay, plan: diff });
                 setColDays(createColDays(planSt, planEd, actSt, actEd));
             }
         } else {
@@ -182,8 +180,8 @@ export const Task = (props) => {
                 endDateActRef.current.setAttribute("min", actSt);
             }
             if (actSt !== "" && actEd !== "") {
-                const diffDay = calcDiffDay(actSt, actEd);
-                setActDiffDay(diffDay);
+                const diff = calcDiffDay(actSt, actEd);
+                setDiffDay({ ...diffDay, act: diff });
                 setColDays(createColDays(planSt, planEd, actSt, actEd));
             }
         }
@@ -194,9 +192,28 @@ export const Task = (props) => {
         progBar.current.style.width = `${progBarRange.current.value}%`;
     };
 
+    const dragStart = (index) => {
+        props.setDragIndex(index);
+    };
+
+    const dragEnter = (index) => {
+        if (index === props.dragIndex) return;
+        props.setTasks((prevState) => {
+            let newTasks = JSON.parse(JSON.stringify(prevState));
+            const deleteElement = newTasks.splice(props.dragIndex, 1)[0];
+            newTasks.splice(index, 0, deleteElement);
+            return newTasks;
+        });
+        props.setDragIndex(index);
+    };
+
     return (
         <>
-            <tr>
+            <tr
+                draggable={true}
+                onDragStart={() => dragStart(props.trIndex)}
+                onDragEnter={() => dragEnter(props.trIndex)}
+            >
                 <Td>{props.task.id}</Td>
                 <TaskTitle>{props.task.title}</TaskTitle>
                 <Td>{props.task.name}</Td>
@@ -235,7 +252,7 @@ export const Task = (props) => {
                         onChange={() => checkDate("plan")}
                     />
                 </Td>
-                <Td>{planDiffDay}</Td>
+                <Td>{diffDay.plan}</Td>
                 <Td>
                     <InputDate
                         ref={startDateActRef}
@@ -252,8 +269,8 @@ export const Task = (props) => {
                         onChange={() => checkDate("act")}
                     />
                 </Td>
-                <Td>{actDiffDay}</Td>
-                <Td ref={aheadRef} backgroundColor={ahead.color}>
+                <Td>{diffDay.act}</Td>
+                <Td ref={aheadRef} color={ahead.color}>
                     {ahead.text}
                 </Td>
                 {colDays}
@@ -263,12 +280,11 @@ export const Task = (props) => {
 };
 
 const Td = styled.td`
-    padding: 5px;
+    padding: 10px;
     border: 1px solid #aaa;
     text-align: center;
     vertical-align: middle;
-    background: ${(props) =>
-        props.backgroundColor ? props.backgroundColor : "#fff"};
+    background-color: ${(props) => (props.color ? props.color : "#fff")};
 `;
 
 const DateTd = styled.td`
@@ -278,7 +294,8 @@ const DateTd = styled.td`
 `;
 
 const TaskTitle = styled(Td)`
-    width: 200px;
+    text-align: left;
+    min-width: 300px;
 `;
 
 const InputDate = styled.input`
