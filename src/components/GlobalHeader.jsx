@@ -1,20 +1,13 @@
 import styled from "styled-components";
 
 export const GlobalHeader = (props) => {
-    const handleClick = (process) => {
-        if (process === "up") {
-            props.setIndent(props.indent++);
-        } else if (process === "down") {
-            props.setIndent(props.indent--);
-        }
-    };
 
     return (
         <>
             <Header>
                 <Wrapper>
-                    <Button onClick={() => handleClick("up")}>&lt;</Button>
-                    <Button onClick={() => handleClick("down")}>&gt;</Button>
+                    <Button onClick={() => props.handleClick("down")}>&lt;</Button>
+                    <Button onClick={() => props.handleClick("up")}>&gt;</Button>
                 </Wrapper>
             </Header>
         </>

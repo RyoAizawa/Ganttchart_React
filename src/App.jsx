@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { createGlobalStyle } from "styled-components";
 import reset from "styled-reset";
@@ -14,24 +14,28 @@ const GlobalStyle = createGlobalStyle`
         scroll-behavior: smooth;
     }
 `;
-const fetcher = (...args) => fetch(...args).then(res => res.json())
+const fetcher = (...args) => fetch(...args).then((res) => res.json());
 
 const App = () => {
-    const [indent, setIndent] = useState(0)
+    const [indentProcess, setIndentProcess] = useState("");
 
-    const {data, error, isLoading} = useSWR("/api/data", fetcher)
-    if (error) return <div>failed to load</div>
-    if (isLoading) return <div>loading...</div>
+    const handleClick = (process) => {
+        setIndentProcess(process);
+    };
+    useEffect(() => {
+        setIndentProcess("");
+    }, [indentProcess]);
+
+    const { data, error, isLoading } = useSWR("/api/data", fetcher);
+    if (error) return <div>failed to load</div>;
+    if (isLoading) return <div>loading...</div>;
 
     return (
         <>
             <GlobalStyle />
-            <Header
-                indent={indent}
-                setIndent={setIndent}
-            />
+            <Header handleClick={handleClick} />
             <main>
-                <ChartTable taskData={data} indent={indent} />
+                <ChartTable taskData={data} indentProcess={indentProcess} />
             </main>
         </>
     );

@@ -10,7 +10,6 @@ export const Task = (props) => {
     const [diffDay, setDiffDay] = useState({ plan: 0 }, { act: 0 });
     const [colDays, setColDays] = useState([]);
     const [ahead, setAhead] = useState({ text: "" }, { color: "" });
-    const [selectedRow, setSelectedRow] = useState(null)
 
     const startDatePlanRef = useRef();
     const endDatePlanRef = useRef();
@@ -244,6 +243,11 @@ export const Task = (props) => {
                         props.handleRowClick(props.trIndex);
                         selectedRows(props.trIndex);
                     }}
+                    $indent={props.tableData.map((data) => {
+                        if (data.trIndex === props.trIndex) {
+                            return 12 * data.indentIndex + "px"
+                        }
+                    })}
                 >
                     {props.task.title}
                 </TaskTitle>
@@ -327,6 +331,7 @@ const DateTd = styled.td`
 const TaskTitle = styled(Td)`
     text-align: left;
     min-width: 300px;
+    text-indent: ${(props) => (props.$indent ? props.$indent : 0)};
 `;
 
 const InputDate = styled.input`

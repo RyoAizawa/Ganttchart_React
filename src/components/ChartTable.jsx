@@ -10,6 +10,8 @@ export const ChartTable = (props) => {
     // const [dragSelect, setDragSelect] = useState(false);
     // const [startRowIndex, setStartRowIndex] = useState(null);
 
+    // const [indentInfo, setIndentInfo] = useState(null);
+
     let prevTaskRef = useRef(tasks);
 
     const handleDragIndex = (index) => {
@@ -19,10 +21,20 @@ export const ChartTable = (props) => {
     useEffect(() => {
         setTableData(
             tasks.map((task, index) => {
-                return { ...tableData, trIndex: index, selected: false };
+                return {
+                    ...tableData,
+                    trIndex: index,
+                    selected: false,
+                    indentIndex: 0,
+                };
             })
         );
     }, []);
+
+    useEffect(() => {
+        indentControl(props.indentProcess);
+        return () => {};
+    }, [props.indentProcess]);
 
     // ガントチャートに出力する日数
     const columnsValue = 30;
@@ -91,9 +103,22 @@ export const ChartTable = (props) => {
                 }
             });
         });
-        console.log(newTableData)
+        console.log(newTableData);
         setTableData(newTableData);
         prevTaskRef.current = [...tasks];
+    };
+
+    // ヘッダのインデントボタンが押された際に、選択された行のインデックスを加減する
+    const indentControl = (process) => {
+        tableData.forEach((data) => {
+            if (data.selected) {
+                if (process === "up") {
+                    if (data.indentIndex < 3) data.indentIndex++;
+                } else if (process === "down") {
+                    if (data.indentIndex > 0) data.indentIndex--;
+                }
+            }
+        });
     };
 
     return (
