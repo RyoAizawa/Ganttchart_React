@@ -10,6 +10,7 @@ export const Task = (props) => {
     const [diffDay, setDiffDay] = useState({ plan: 0 }, { act: 0 });
     const [colDays, setColDays] = useState([]);
     const [ahead, setAhead] = useState({ text: "" }, { color: "" });
+    const [selectedRow, setSelectedRow] = useState(null)
 
     const startDatePlanRef = useRef();
     const endDatePlanRef = useRef();
@@ -18,6 +19,7 @@ export const Task = (props) => {
     const progBarRange = useRef();
     const progBar = useRef();
     const aheadRef = useRef();
+    const tableRowRef = useRef();
 
     useEffect(() => {
         setColDays(createColDays(planSt, planEd, actSt, actEd));
@@ -193,29 +195,58 @@ export const Task = (props) => {
     };
 
     const dragStart = (index) => {
-        props.setDragIndex(index);
+        props.handleDragIndex(index);
     };
 
     const dragEnter = (index) => {
         if (index === props.dragIndex) return;
-        props.setTasks((prevState) => {
-            let newTasks = JSON.parse(JSON.stringify(prevState));
+        props.setTasks((prevData) => {
+            let newTasks = JSON.parse(JSON.stringify(prevData));
             const deleteElement = newTasks.splice(props.dragIndex, 1)[0];
             newTasks.splice(index, 0, deleteElement);
             return newTasks;
         });
-        props.setDragIndex(index);
+        props.handleDragIndex(index);
+    };
+
+    const selectedRows = (index) => {
+        const tableRowAll = document.querySelectorAll("tr[name='tableRow']")
+        tableRowAll.forEach((row) => {
+            row.removeAttribute("style")
+            row.draggable = false
+        })
+        props.tableData.map((rowData) => {
+            if (rowData.trIndex === index) {
+                console.log(rowData)
+                if (rowData.selected) {
+                    tableRowRef.current.style.backgroundColor = "#c2feff";
+                    tableRowRef.current.draggable = true;
+                } else {
+                    tableRowRef.current.draggable = false;
+                }
+            }
+        });
     };
 
     return (
         <>
             <tr
-                draggable={true}
+                name="tableRow"
+                ref={tableRowRef}
+                draggable={false}
                 onDragStart={() => dragStart(props.trIndex)}
                 onDragEnter={() => dragEnter(props.trIndex)}
+                onDragEnd={()=> props.handleTableData()}
             >
                 <Td>{props.task.id}</Td>
-                <TaskTitle>{props.task.title}</TaskTitle>
+                <TaskTitle
+                    onClick={() => {
+                        props.handleRowClick(props.trIndex);
+                        selectedRows(props.trIndex);
+                    }}
+                >
+                    {props.task.title}
+                </TaskTitle>
                 <Td>{props.task.name}</Td>
                 <Td>
                     <InputRange
@@ -284,7 +315,7 @@ const Td = styled.td`
     border: 1px solid #aaa;
     text-align: center;
     vertical-align: middle;
-    background-color: ${(props) => (props.color ? props.color : "#fff")};
+    background-color: ${(props) => (props.color ? props.color : "")};
 `;
 
 const DateTd = styled.td`
