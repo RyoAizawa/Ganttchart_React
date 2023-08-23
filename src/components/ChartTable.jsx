@@ -10,8 +10,6 @@ export const ChartTable = (props) => {
     // const [dragSelect, setDragSelect] = useState(false);
     // const [startRowIndex, setStartRowIndex] = useState(null);
 
-    // const [indentInfo, setIndentInfo] = useState(null);
-
     let prevTaskRef = useRef(tasks);
 
     const handleDragIndex = (index) => {
@@ -63,8 +61,6 @@ export const ChartTable = (props) => {
 
     // テーブル行がクリックされたときの処理
     const handleRowClick = (index) => {
-        console.log("handleRowClick", index);
-        console.log("tableData", tableData);
         tableData.map((data) => {
             // 選択された行の選択状況を反転する
             if (data.trIndex === index) {
@@ -81,7 +77,6 @@ export const ChartTable = (props) => {
 
     // 行データを移動した後に呼ばれるメソッド。選択済み
     const handleTableData = () => {
-        console.log("handleTableData");
         // 移動後のテーブルの状況を確認するために移動後のインデックス番号を取得
         let newTableDataIndex = [];
         prevTaskRef.current.forEach((prevData) => {
@@ -103,7 +98,6 @@ export const ChartTable = (props) => {
                 }
             });
         });
-        console.log(newTableData);
         setTableData(newTableData);
         prevTaskRef.current = [...tasks];
     };

@@ -16,20 +16,23 @@ export const Task = (props) => {
     const startDateActRef = useRef();
     const endDateActRef = useRef();
     const progBarRange = useRef();
-    const progBar = useRef();
+    const progBarRef = useRef();
     const aheadRef = useRef();
     const tableRowRef = useRef();
+    const selectRef = useRef();
 
     useEffect(() => {
         setColDays(createColDays(planSt, planEd, actSt, actEd));
         const planDiff = calcDiffDay(planSt, planEd);
         const actDiff = calcDiffDay(actSt, actEd);
         setDiffDay({ ...diffDay, plan: planDiff, act: actDiff });
+        progBarDisabled(planSt, planEd);
         return () => {};
     }, []);
 
     // YYYY/MM/DDからYYYY-MM-DDにフォーマットするメソッド
     const dateTimeFormat = (date) => {
+        if (date === null) return;
         const dateJp = dateTimeFormatJP.format(new Date(date));
         return dateJp.replace(/\//g, "-");
     };
@@ -49,6 +52,7 @@ export const Task = (props) => {
         const colDaysArray = props.fullDateArray.map((elem, i) => {
             let planBar = "";
             let actBar = "";
+            let progBar = "";
             const formattedColDate = dateTimeFormatJP.format(new Date(elem));
             if (planStart !== "" && planEnd !== "") {
                 // 開始日がチャート開始日程より以前の場合には起点をチャート日程の先頭に合わせる
@@ -80,12 +84,19 @@ export const Task = (props) => {
                     if (diff < 1) {
                         display = "none";
                     }
+
+                    progBar = (
+                        <ProgBar
+                            ref={progBarRef}
+                            width={`${progBarRange.current.value}%`}
+                        ></ProgBar>
+                    );
                     planBar = (
                         <PlanBar
                             width={`calc(${100 * diff}% + ${diff * 1 + 1}px)`}
                             display={`${display}`}
                         >
-                            <ProgBar ref={progBar}></ProgBar>
+                            {progBar}
                         </PlanBar>
                     );
                 }
@@ -139,7 +150,7 @@ export const Task = (props) => {
         });
         setAhead({ ...ahead, text: "", color: "" });
         // 予定よりも終了実績が早ければ先行に〇
-        if (planEnd > actEnd) {
+        if (actEnd !== "" && planEnd > actEnd) {
             setAhead({ ...ahead, text: "〇", color: "#88e5ff" });
             aheadRef.current.style.backgroundColor = ahead.color;
         }
@@ -148,6 +159,7 @@ export const Task = (props) => {
 
     // 予定、実績にセットされた日付けの差分を計算
     const calcDiffDay = (stDate, edDate) => {
+        if (stDate === null || edDate === null) return "";
         const startDate = new Date(stDate);
         const endDate = new Date(edDate);
         const diffTime = endDate.getTime() - startDate.getTime();
@@ -159,10 +171,12 @@ export const Task = (props) => {
 
     // // 日付けがセットされた後の挙動
     const checkDate = (process) => {
-        const planSt = startDatePlanRef.current.value;
-        const planEd = endDatePlanRef.current.value;
-        const actSt = startDateActRef.current.value;
-        const actEd = endDateActRef.current.value;
+        planSt = startDatePlanRef.current.value;
+        planEd = endDatePlanRef.current.value;
+        actSt = startDateActRef.current.value;
+        actEd = endDateActRef.current.value;
+
+        progBarDisabled(planSt, planEd);
 
         if (process === "plan") {
             // 終了日は開始日以前を設定できないようにする
@@ -190,13 +204,15 @@ export const Task = (props) => {
 
     // 進捗バーの進退を制御
     const setProgBar = () => {
-        progBar.current.style.width = `${progBarRange.current.value}%`;
+        progBarRef.current.style.width = `${progBarRange.current.value}%`;
     };
 
+    // 選択行のドラッグ開始
     const dragStart = (index) => {
         props.handleDragIndex(index);
     };
 
+    // 選択行のドラッグ中行の上に乗った状態
     const dragEnter = (index) => {
         if (index === props.dragIndex) return;
         props.setTasks((prevData) => {
@@ -208,15 +224,15 @@ export const Task = (props) => {
         props.handleDragIndex(index);
     };
 
+    // 行をクリック
     const selectedRows = (index) => {
-        const tableRowAll = document.querySelectorAll("tr[name='tableRow']")
+        const tableRowAll = document.querySelectorAll("tr[name='tableRow']");
         tableRowAll.forEach((row) => {
-            row.removeAttribute("style")
-            row.draggable = false
-        })
+            row.removeAttribute("style");
+            row.draggable = false;
+        });
         props.tableData.map((rowData) => {
             if (rowData.trIndex === index) {
-                console.log(rowData)
                 if (rowData.selected) {
                     tableRowRef.current.style.backgroundColor = "#c2feff";
                     tableRowRef.current.draggable = true;
@@ -227,6 +243,11 @@ export const Task = (props) => {
         });
     };
 
+    const progBarDisabled = (st, ed) => {
+        if (st === null || ed === null) progBarRange.current.disabled = true;
+        else progBarRange.current.disabled = false;
+    };
+
     return (
         <>
             <tr
@@ -235,7 +256,7 @@ export const Task = (props) => {
                 draggable={false}
                 onDragStart={() => dragStart(props.trIndex)}
                 onDragEnter={() => dragEnter(props.trIndex)}
-                onDragEnd={()=> props.handleTableData()}
+                onDragEnd={() => props.handleTableData()}
             >
                 <Td>{props.task.id}</Td>
                 <TaskTitle
@@ -245,7 +266,7 @@ export const Task = (props) => {
                     }}
                     $indent={props.tableData.map((data) => {
                         if (data.trIndex === props.trIndex) {
-                            return 12 * data.indentIndex + "px"
+                            return 12 * data.indentIndex + "px";
                         }
                     })}
                 >
@@ -259,16 +280,16 @@ export const Task = (props) => {
                         step="10"
                         min="0"
                         max="100"
-                        defaultValue={0}
+                        defaultValue={props.task.progress}
                         onChange={() => setProgBar()}
                     />
                 </Td>
                 <Td>
-                    <select name="status">
-                        <option value="">未着手</option>
-                        <option value="">進行中</option>
-                        <option value="">保留</option>
-                        <option value="">完了</option>
+                    <select ref={selectRef} defaultValue={props.task.status}>
+                        <option value="未着手">未着手</option>
+                        <option value="進行中">進行中</option>
+                        <option value="保留">保留</option>
+                        <option value="完了">完了</option>
                     </select>
                 </Td>
                 <Td>
