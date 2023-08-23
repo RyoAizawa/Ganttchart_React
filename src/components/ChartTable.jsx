@@ -62,13 +62,14 @@ export const ChartTable = (props) => {
     // テーブル行がクリックされたときの処理
     const handleRowClick = (index) => {
         tableData.map((data) => {
+            console.log(window.event.ctrlKey)
             // 選択された行の選択状況を反転する
             if (data.trIndex === index) {
                 data.selected === false
                     ? (data.selected = true)
                     : (data.selected = false);
             } else {
-                if (data.selected) {
+                if (!window.event.ctrlKey && data.selected) {
                     data.selected = false;
                 }
             }

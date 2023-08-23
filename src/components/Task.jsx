@@ -225,20 +225,15 @@ export const Task = (props) => {
     };
 
     // 行をクリック
-    const selectedRows = (index) => {
+    const selectedRows = () => {
         const tableRowAll = document.querySelectorAll("tr[name='tableRow']");
-        tableRowAll.forEach((row) => {
-            row.removeAttribute("style");
-            row.draggable = false;
-        });
-        props.tableData.map((rowData) => {
-            if (rowData.trIndex === index) {
-                if (rowData.selected) {
-                    tableRowRef.current.style.backgroundColor = "#c2feff";
-                    tableRowRef.current.draggable = true;
-                } else {
-                    tableRowRef.current.draggable = false;
-                }
+        props.tableData.map((rowData, i) => {
+            if (rowData.selected) {
+                tableRowAll[i].style.backgroundColor = "#c2feff";
+                tableRowAll[i].draggable = true;
+            } else {
+                tableRowAll[i].removeAttribute("style");
+                tableRowAll[i].draggable = false;
             }
         });
     };
