@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import axios from "axios";
 import styled from "styled-components";
 
 export const Task = (props) => {
@@ -274,6 +275,24 @@ export const Task = (props) => {
         else progBarRange.current.disabled = false;
     };
 
+    const useFetch = axios.create({
+        baseURL: "http://localhost:3001",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Access-Control-Allow-Origin": "*",
+        },
+        timeout: 2000,
+    });
+
+    // タスクを削除する関数
+    const deleteTask = async (id) => {
+        try {
+            await useFetch.get(`/api/delete/${id}`);
+        } catch (error) {
+            console.error("Error delete task:", error);
+        }
+    };
+
     return (
         <>
             <tr
@@ -284,6 +303,20 @@ export const Task = (props) => {
                 onDragEnter={() => dragEnter(props.trIndex)}
                 onDragEnd={() => props.handleTableData()}
             >
+                <Td>
+                    <Btn
+                        color={"red"}
+                        onClick={() => deleteTask(props.task.id)}
+                    >
+                        削除
+                    </Btn>
+                </Td>
+                <Td>
+                    <Btn color={"#00aaff"}>更新</Btn>
+                </Td>
+                <Td>
+                    <Btn color={"#00a903"}>編集</Btn>
+                </Td>
                 <Td>{props.task.id}</Td>
                 <TaskTitle
                     onClick={() => {
@@ -360,6 +393,16 @@ export const Task = (props) => {
         </>
     );
 };
+
+const Btn = styled.button`
+    min-width: 50px;
+    border: 1px solid #aaa;
+    color: #fff;
+    background-color: ${(props) => (props.color ? props.color : "")};
+    &:hover {
+        opacity: 0.5;
+    }
+`;
 
 const Td = styled.td`
     padding: 10px;

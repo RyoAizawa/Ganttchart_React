@@ -18,6 +18,9 @@ export const TaskHeader = (props) => {
     return (
         <>
             <tr>
+                <Th rowSpan="3"></Th>
+                <Th rowSpan="3"></Th>
+                <Th rowSpan="3"></Th>
                 <Th rowSpan="3">
                     No
                 </Th>
