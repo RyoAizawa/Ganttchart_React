@@ -29,7 +29,6 @@ const App = () => {
     const { data, error, isLoading } = useSWR("/api/data", fetcher);
     if (error) return <div>failed to load</div>;
     if (isLoading) return <div>loading...</div>;
-
     return (
         <>
             <GlobalStyle />

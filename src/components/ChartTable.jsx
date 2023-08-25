@@ -12,8 +12,8 @@ export const ChartTable = (props) => {
 
     let prevTaskRef = useRef(tasks);
 
-    const handleDragIndex = (index) => {
-        setDragIndex(index);
+    const handleDragIndex = (selectedRows) => {
+        setDragIndex(selectedRows);
     };
 
     useEffect(() => {
@@ -62,7 +62,6 @@ export const ChartTable = (props) => {
     // テーブル行がクリックされたときの処理
     const handleRowClick = (index) => {
         tableData.map((data) => {
-            console.log(window.event.ctrlKey)
             // 選択された行の選択状況を反転する
             if (data.trIndex === index) {
                 data.selected === false

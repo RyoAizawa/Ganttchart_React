@@ -214,13 +214,44 @@ export const Task = (props) => {
 
     // 選択行のドラッグ中行の上に乗った状態
     const dragEnter = (index) => {
-        if (index === props.dragIndex) return;
+        let selectedCount = 0;
+        props.tableData.map((rowData) => {
+            if (rowData.selected) selectedCount++;
+        });
+
+        const selectedRow = [];
+        props.tableData.map((rowData) => {
+            if (rowData.selected) {
+                if (
+                    //  ドラッグ中乗った行が、全体の行数を超えず掴んでるものより後の行
+                    index > props.dragIndex &&
+                    index <= props.tableData.length - selectedCount
+                ) {
+                    selectedRow.push(rowData.trIndex++);
+                } else if (index < props.dragIndex) {
+                    //  ドラッグ中乗った行が、掴んでるものより前の行
+                    selectedRow.push(rowData.trIndex--);
+                }
+            }
+        });
+
         props.setTasks((prevData) => {
             let newTasks = JSON.parse(JSON.stringify(prevData));
-            const deleteElement = newTasks.splice(props.dragIndex, 1)[0];
-            newTasks.splice(index, 0, deleteElement);
+            let deleteElement = [];
+            selectedRow.forEach((elem, i) => {
+                // 選択済み行を取り出す（元の配列からは消える）
+                const newTask = newTasks.splice(elem - i, 1)[0];
+                deleteElement.push(newTask);
+            });
+            console.log(deleteElement);
+            // 取り出した行を、指定したインデックスに追加
+            deleteElement.forEach((elem, i) => {
+                newTasks.splice(index + i, 0, elem);
+            });
             return newTasks;
         });
+
+        props.handleTableData();
         props.handleDragIndex(index);
     };
 
