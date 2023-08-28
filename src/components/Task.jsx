@@ -285,11 +285,14 @@ export const Task = (props) => {
     });
 
     // タスクを削除する関数
-    const deleteTask = async (id) => {
-        try {
-            await useFetch.get(`/api/delete/${id}`);
-        } catch (error) {
-            console.error("Error delete task:", error);
+    const deleteTask = async (id, content) => {
+        if (confirm(`このタスクを削除してよろしいですか？\n${content}`)) {
+            try {
+                await useFetch.get(`/api/delete/${id}`);
+                window.location.reload();
+            } catch (error) {
+                console.error("Error delete task:", error);
+            }
         }
     };
 
@@ -306,7 +309,7 @@ export const Task = (props) => {
                 <Td>
                     <Btn
                         color={"red"}
-                        onClick={() => deleteTask(props.task.id)}
+                        onClick={() => deleteTask(props.task.id, props.task.title)}
                     >
                         削除
                     </Btn>

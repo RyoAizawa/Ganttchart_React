@@ -17,6 +17,7 @@ const GlobalStyle = createGlobalStyle`
 const fetcher = (...args) => fetch(...args).then((res) => res.json());
 
 const App = () => {
+    const { data, error, isLoading } = useSWR("/api/data", fetcher);
     const [indentProcess, setIndentProcess] = useState("");
 
     const handleClick = (process) => {
@@ -26,9 +27,9 @@ const App = () => {
         setIndentProcess("");
     }, [indentProcess]);
 
-    const { data, error, isLoading } = useSWR("/api/data", fetcher);
     if (error) return <div>failed to load</div>;
     if (isLoading) return <div>loading...</div>;
+
     return (
         <>
             <GlobalStyle />

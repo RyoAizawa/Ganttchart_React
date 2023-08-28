@@ -47,14 +47,13 @@ app.get("/api/data", (req, res) => {
 });
 
 app.get("/api/delete/:id", (req, res) => {
-    console.log();
     const sql = "DELETE FROM task WHERE id = ?";
     con.query(sql, [req.params.id], (error, results) => {
         if (error) {
             console.error(error);
             res.status(500).json({ error: "Internal server error" });
         }
-        res.redirect("/api/data")
+        res.json(results);
     });
 });
 
