@@ -20,7 +20,6 @@ export const TaskHeader = (props) => {
             <tr>
                 <Th rowSpan="3"></Th>
                 <Th rowSpan="3"></Th>
-                <Th rowSpan="3"></Th>
                 <Th rowSpan="3">
                     No
                 </Th>

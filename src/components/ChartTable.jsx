@@ -1,19 +1,30 @@
 import { useEffect, useState, useRef } from "react";
+import axios from "axios";
 import Task from "./Task";
 import TaskHeader from "./TaskHeader";
+import ModalWindow from "./ModalWindow";
 import styled from "styled-components";
 
 export const ChartTable = (props) => {
     const [tasks, setTasks] = useState(props.taskData);
     const [dragIndex, setDragIndex] = useState(null);
     const [tableData, setTableData] = useState([]);
-    // const [dragSelect, setDragSelect] = useState(false);
-    // const [startRowIndex, setStartRowIndex] = useState(null);
+    const [isShow, setIsShow] = useState(false);
+    const [editContent, setEditContent] = useState({});
 
     let prevTaskRef = useRef(tasks);
 
     const handleDragIndex = (selectedRows) => {
         setDragIndex(selectedRows);
+    };
+
+    const handleEdit = (contentArray) => {
+        setIsShow(true);
+        setEditContent(contentArray);
+    };
+
+    const handleClose = () => {
+        setIsShow(false);
     };
 
     useEffect(() => {
@@ -33,6 +44,17 @@ export const ChartTable = (props) => {
         indentControl(props.indentProcess);
         return () => {};
     }, [props.indentProcess]);
+
+    const useFetch = axios.create({
+        baseURL: "http://localhost:3001",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Access-Control-Allow-Origin": "*",
+        },
+        timeout: 2000,
+    });
+
+
 
     // ガントチャートに出力する日数
     const columnsValue = 30;
@@ -136,11 +158,19 @@ export const ChartTable = (props) => {
                                 tableData={tableData}
                                 handleTableData={handleTableData}
                                 fullDateArray={fullDateArray}
+                                handleEdit={handleEdit}
+                                useFetch={useFetch}
                             />
                         );
                     })}
                 </Tbody>
             </Table>
+            <ModalWindow
+                isShow={isShow}
+                handleClose={handleClose}
+                editContent={editContent}
+                useFetch={useFetch}
+            />
         </>
     );
 };

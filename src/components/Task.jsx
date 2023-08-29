@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import axios from "axios";
 import styled from "styled-components";
 
 export const Task = (props) => {
@@ -102,7 +101,8 @@ export const Task = (props) => {
                     );
                 }
             }
-            if (actStart !== "" && actEnd !== "") {
+
+            if (actStart !== "" && actEnd !== "" && actEnd !== null) {
                 if (calcDiffDay(props.fullDateArray[0], actStart) === 0) {
                     actStart = props.fullDateArray[0];
                 }
@@ -133,6 +133,21 @@ export const Task = (props) => {
                     actBar = (
                         <ActBar
                             width={`calc(${100 * diff}% + ${diff * 1 + 1}px)`}
+                            display={display}
+                        ></ActBar>
+                    );
+                }
+            }
+            // 実績の開始日だけ設定されている場合の処理
+            else if (actStart !== "") {
+                const formattedStDateAct = dateTimeFormatJP.format(
+                    new Date(actStart)
+                );
+                let display = ""
+                if (formattedColDate === formattedStDateAct) {
+                    actBar = (
+                        <ActBar
+                            width={`15px`}
                             display={`${display}`}
                         ></ActBar>
                     );
@@ -195,9 +210,11 @@ export const Task = (props) => {
             if (actSt !== "") {
                 endDateActRef.current.setAttribute("min", actSt);
             }
-            if (actSt !== "" && actEd !== "") {
-                const diff = calcDiffDay(actSt, actEd);
-                setDiffDay({ ...diffDay, act: diff });
+            if (actSt !== "") {
+                if (actSt !== "" && actEd !== "") {
+                    const diff = calcDiffDay(actSt, actEd);
+                    setDiffDay({ ...diffDay, act: diff });
+                }
                 setColDays(createColDays(planSt, planEd, actSt, actEd));
             }
         }
@@ -244,7 +261,6 @@ export const Task = (props) => {
                 const newTask = newTasks.splice(elem - i, 1)[0];
                 deleteElement.push(newTask);
             });
-            console.log(deleteElement);
             // 取り出した行を、指定したインデックスに追加
             deleteElement.forEach((elem, i) => {
                 newTasks.splice(index + i, 0, elem);
@@ -275,25 +291,31 @@ export const Task = (props) => {
         else progBarRange.current.disabled = false;
     };
 
-    const useFetch = axios.create({
-        baseURL: "http://localhost:3001",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Access-Control-Allow-Origin": "*",
-        },
-        timeout: 2000,
-    });
-
     // タスクを削除する関数
-    const deleteTask = async (id, content) => {
-        if (confirm(`このタスクを削除してよろしいですか？\n${content}`)) {
+    const deleteTask = async (id, title) => {
+        if (confirm(`このタスクを削除してよろしいですか？\n${title}`)) {
             try {
-                await useFetch.get(`/api/delete/${id}`);
+                await props.useFetch.get(`/api/delete/${id}`);
                 window.location.reload();
             } catch (error) {
                 console.error("Error delete task:", error);
             }
         }
+    };
+
+    const editClick = async (id, title, name) => {
+        const contentArray = {
+            id: id,
+            title: title,
+            name: name,
+            startDatePlan: startDatePlanRef.current.value,
+            endDatePlan: endDatePlanRef.current.value,
+            startDateAct: startDateActRef.current.value,
+            endDateAct: endDateActRef.current.value,
+            status: selectRef.current.value,
+            progBarValue: progBarRange.current.value,
+        };
+        props.handleEdit(contentArray);
     };
 
     return (
@@ -309,16 +331,22 @@ export const Task = (props) => {
                 <Td>
                     <Btn
                         color={"red"}
-                        onClick={() => deleteTask(props.task.id, props.task.title)}
+                        onClick={() =>
+                            deleteTask(props.task.id, props.task.title)
+                        }
                     >
                         削除
                     </Btn>
                 </Td>
                 <Td>
-                    <Btn color={"#00aaff"}>更新</Btn>
-                </Td>
-                <Td>
-                    <Btn color={"#00a903"}>編集</Btn>
+                    <Btn
+                        color={"#00a903"}
+                        onClick={() =>
+                            editClick(props.task.id, props.task.title, props.task.name)
+                        }
+                    >
+                        編集
+                    </Btn>
                 </Td>
                 <Td>{props.task.id}</Td>
                 <TaskTitle
@@ -442,7 +470,7 @@ const PlanBar = styled.div`
     height: 50%;
     transform: translateY(-50%);
     background: #93bef3;
-    z-index: 1;
+    z-index: 0;
 `;
 
 const ActBar = styled.div`
@@ -453,7 +481,7 @@ const ActBar = styled.div`
     height: 5px;
     background-color: blue;
     border: none;
-    z-index: 2;
+    z-index: 0;
 `;
 
 const ProgBar = styled.div`
