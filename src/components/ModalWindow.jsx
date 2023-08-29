@@ -2,9 +2,37 @@ import { useState, useEffect, useRef } from "react";
 import { styled } from "styled-components";
 
 const ModalWindow = (props) => {
+    let title = "";
+    let btnText = "";
+    if (props.process === "edit") {
+        title = "編集";
+        btnText = "更新";
+    } else {
+        title = "新規追加";
+        btnText = "追加";
+    }
     const [isClose, setIsClose] = useState(false);
-    const [progress, setProgress] = useState();
-
+    const [progress, setProgress] = useState(0);
+    const [formData, setFormData] = useState({
+        id: 0,
+        title: "",
+        name: "",
+        progress: 0,
+        status: "",
+        startDatePlan: "",
+        endDatePlan: "",
+        startDateAct: "",
+        endDateAct: "",
+    });
+    const [errors, setErrors] = useState({
+        flag: false,
+        title: "",
+        name: "",
+        startDatePlan: "",
+        endDatePlan: "",
+    });
+    const titleRef = useRef();
+    const nameRef = useRef();
     const startDatePlanRef = useRef();
     const endDatePlanRef = useRef();
     const startDateActRef = useRef();
@@ -18,22 +46,39 @@ const ModalWindow = (props) => {
     }, [props.isShow]);
 
     const initParam = () => {
-        setProgress(props.editContent.progBarValue);
-        progBarRef.current.value = props.editContent.progBarValue;
-        startDatePlanRef.current.value = props.editContent.startDatePlan;
-        endDatePlanRef.current.value = props.editContent.endDatePlan;
-        startDateActRef.current.value = props.editContent.startDateAct;
-        endDateActRef.current.value = props.editContent.endDateAct;
-        selectRef.current.value = props.editContent.status;
+        if (props.process === "edit") {
+            setFormData({
+                ...formData,
+                id: props.editContent.id,
+                title: props.editContent.title,
+                name: props.editContent.name,
+                progress: props.editContent.progress,
+                status: props.editContent.status,
+                startDatePlan: props.editContent.startDatePlan,
+                endDatePlan: props.editContent.endDatePlan,
+                startDateAct: props.editContent.startDateAct,
+                endDateAct: props.editContent.endDateAct,
+            });
+            setProgress(props.editContent.progBarValue);
+            progBarRef.current.value = props.editContent.progBarValue;
+            startDatePlanRef.current.value = props.editContent.startDatePlan;
+            endDatePlanRef.current.value = props.editContent.endDatePlan;
+            startDateActRef.current.value = props.editContent.startDateAct;
+            endDateActRef.current.value = props.editContent.endDateAct;
+            selectRef.current.value = props.editContent.status;
+        }
+        else {
+            progBarRef.current.value = 0
+        }
     };
 
     const show = () => {
         setIsClose(false);
     };
 
-    const close = () => {
+    const close = (process) => {
         setIsClose(true);
-        props.handleClose();
+        props.handleClose(process);
     };
 
     const setProgBarVal = () => {
@@ -42,13 +87,19 @@ const ModalWindow = (props) => {
 
     const changeStartDate = (process) => {
         if (process === "plan") {
-            endDatePlanRef.current.setAttribute("min", startDatePlanRef.current.value);
+            endDatePlanRef.current.setAttribute(
+                "min",
+                startDatePlanRef.current.value
+            );
         } else {
-            endDateActRef.current.setAttribute("min", startDateActRef.current.value);
+            endDateActRef.current.setAttribute(
+                "min",
+                startDateActRef.current.value
+            );
         }
     };
 
-    // タスクを更新する関数
+    // タスクを更新/追加する関数
     const handleSubmit = async (e, id) => {
         const data = {};
         data.title = e.target.querySelector("input[name='title']").value;
@@ -68,17 +119,61 @@ const ModalWindow = (props) => {
             "input[name='endDateAct']"
         ).value;
 
-        console.log(data);
         e.preventDefault();
+        if (!validate(data)) return false;
 
-        if (confirm(`タスクの内容を更新しますか？`)) {
+        if (props.process === "edit") {
+            if (confirm(`タスクの内容を更新しますか？`)) {
+                try {
+                    await props.useFetch.post(`/api/update/${id}`, data);
+                    window.location.reload();
+                } catch (error) {
+                    console.error("Error update task:", error);
+                }
+            }
+        } else {
             try {
-                await props.useFetch.post(`/api/update/${id}`, data);
+                await props.useFetch.post(`/api/insert/`, data);
                 window.location.reload();
             } catch (error) {
-                console.error("Error update task:", error);
+                console.error("Error insert task:", error);
             }
         }
+    };
+
+    const validate = (data) => {
+        let error = false;
+        let titleError = "";
+        let nameError = "";
+        let startDatePlanError = "";
+        let endDatePlanError = "";
+
+        if (data.title === "") {
+            error = true;
+            titleError = "タイトルを入力してください";
+        }
+        if (data.name === "") {
+            error = true;
+            nameError = "担当者名を入力してください";
+        }
+        if (data.startDatePlan === "") {
+            error = true;
+            startDatePlanError = "開始予定日を入力してください";
+        }
+        if (data.endDatePlan === "") {
+            error = true;
+            endDatePlanError = "終了予定日を入力してください";
+        }
+        setErrors({
+            ...errors,
+            flag: error,
+            title: titleError,
+            name: nameError,
+            startDatePlan: startDatePlanError,
+            endDatePlan: endDatePlanError,
+        });
+        if (error) return false;
+        return true;
     };
 
     return (
@@ -86,31 +181,30 @@ const ModalWindow = (props) => {
             <StyledModalWindow
                 $isShow={props.isShow}
                 $isClose={isClose}
-                className={props.isShow ? "fadeIn" : "f"}
+                className={props.isShow ? "fadeIn" : ""}
             >
-                <Overlay onClick={() => close()} />
+                <Overlay onClick={() => close(props.process)} />
                 <ContentWrapper className={props.isShow ? "fall" : ""}>
                     <Content>
-                        <Button onClick={() => close()}>✖</Button>
-                        <Title>編集</Title>
-                        <Form
-                            onSubmit={(e) =>
-                                handleSubmit(e, props.editContent.id)
-                            }
-                        >
+                        <Button onClick={() => close(props.process)}>✖</Button>
+                        <Title>{title}</Title>
+                        <Form onSubmit={(e) => handleSubmit(e, formData.id)}>
                             <PItem>タイトル</PItem>
+                            <Error>{errors.title}</Error>
                             <FormInputText
+                                ref={titleRef}
                                 type="text"
                                 name="title"
-                                defaultValue={props.editContent.title}
+                                defaultValue={formData.title}
                             />
                             <PItem>担当者</PItem>
+                            <Error>{errors.name}</Error>
                             <FormInputText
+                                ref={nameRef}
                                 type="text"
                                 name="name"
-                                defaultValue={props.editContent.name}
+                                defaultValue={formData.name}
                             />
-
                             <FlexArea>
                                 <div>
                                     <PItem>進捗率</PItem>
@@ -122,9 +216,7 @@ const ModalWindow = (props) => {
                                         step="10"
                                         min="0"
                                         max="100"
-                                        defaultValue={
-                                            props.editContent.progBarValue
-                                        }
+                                        defaultValue={formData.progBarValue}
                                         onChange={() => setProgBarVal()}
                                     />
                                 </div>
@@ -133,7 +225,7 @@ const ModalWindow = (props) => {
                                     <FormInputSelect
                                         ref={selectRef}
                                         name="status"
-                                        defaultValue={props.editContent.status}
+                                        defaultValue={formData.status}
                                     >
                                         <option value="未着手">未着手</option>
                                         <option value="進行中">進行中</option>
@@ -145,26 +237,24 @@ const ModalWindow = (props) => {
                             <FlexArea>
                                 <div>
                                     <PItem>開始予定日</PItem>
+                                    <Error>{errors.startDatePlan}</Error>
                                     <FormInput
                                         type="date"
                                         name="startDatePlan"
                                         ref={startDatePlanRef}
-                                        defaultValue={
-                                            props.editContent.startDatePlan
-                                        }
+                                        defaultValue={formData.startDatePlan}
                                         onChange={() => changeStartDate("plan")}
                                     />
                                 </div>
                                 <div>
                                     <PItem>終了予定日</PItem>
+                                    <Error>{errors.endDatePlan}</Error>
                                     <FormInput
                                         type="date"
                                         name="endDatePlan"
                                         ref={endDatePlanRef}
-                                        min={props.editContent.startDatePlan}
-                                        defaultValue={
-                                            props.editContent.endDatePlan
-                                        }
+                                        min={formData.startDatePlan}
+                                        defaultValue={formData.endDatePlan}
                                     />
                                 </div>
                             </FlexArea>
@@ -175,12 +265,9 @@ const ModalWindow = (props) => {
                                         type="date"
                                         name="startDateAct"
                                         ref={startDateActRef}
-                                        defaultValue={
-                                            props.editContent.startDateAct
-                                        }
+                                        defaultValue={formData.startDateAct}
                                         onChange={() => changeStartDate("act")}
                                     />
-
                                 </div>
                                 <div>
                                     <PItem>終了実績日</PItem>
@@ -188,15 +275,13 @@ const ModalWindow = (props) => {
                                         type="date"
                                         name="endDateAct"
                                         ref={endDateActRef}
-                                        min={props.editContent.startDateAct}
-                                        defaultValue={
-                                            props.editContent.endDateAct
-                                        }
+                                        min={formData.startDateAct}
+                                        defaultValue={formData.endDateAct}
                                     />
                                 </div>
                             </FlexArea>
                             <Submit>
-                                <button type="submit">更新</button>
+                                <button type="submit">{btnText}</button>
                             </Submit>
                         </Form>
                     </Content>
@@ -346,4 +431,7 @@ const Submit = styled.p`
     }
 `;
 
+const Error = styled.span`
+    color: red;
+`;
 export default ModalWindow;

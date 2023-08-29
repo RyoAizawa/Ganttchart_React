@@ -9,7 +9,8 @@ export const ChartTable = (props) => {
     const [tasks, setTasks] = useState(props.taskData);
     const [dragIndex, setDragIndex] = useState(null);
     const [tableData, setTableData] = useState([]);
-    const [isShow, setIsShow] = useState(false);
+    const [isShowEdit, setIsShowEdit] = useState(false);
+    const [isShowAdd, setIsShowAdd] = useState(false);
     const [editContent, setEditContent] = useState({});
 
     let prevTaskRef = useRef(tasks);
@@ -19,12 +20,12 @@ export const ChartTable = (props) => {
     };
 
     const handleEdit = (contentArray) => {
-        setIsShow(true);
+        setIsShowEdit(true);
         setEditContent(contentArray);
     };
 
-    const handleClose = () => {
-        setIsShow(false);
+    const handleClose = (process) => {
+        process === "edit" ? setIsShowEdit(false) : setIsShowAdd(false)
     };
 
     useEffect(() => {
@@ -53,8 +54,6 @@ export const ChartTable = (props) => {
         },
         timeout: 2000,
     });
-
-
 
     // ガントチャートに出力する日数
     const columnsValue = 30;
@@ -166,9 +165,21 @@ export const ChartTable = (props) => {
                 </Tbody>
             </Table>
             <ModalWindow
-                isShow={isShow}
+                process={"edit"}
+                isShow={isShowEdit}
                 handleClose={handleClose}
                 editContent={editContent}
+                useFetch={useFetch}
+            />
+            <AddBtn>
+                <button onClick={() => setIsShowAdd(true)}>
+                    新規タスクの追加
+                </button>
+            </AddBtn>
+            <ModalWindow
+                process={"add"}
+                isShow={isShowAdd}
+                handleClose={handleClose}
                 useFetch={useFetch}
             />
         </>
@@ -184,5 +195,19 @@ const Thead = styled.thead`
     color: white;
 `;
 const Tbody = styled.tbody``;
+
+const AddBtn = styled.div`
+    margin: 10px;
+    > button {
+        color: #fff;
+        background-color: #2142ff;
+        padding: 10px;
+        border: none;
+        border-radius: 10px;
+        &:hover {
+            opacity: 0.5;
+        }
+    }
+`;
 
 export default ChartTable;

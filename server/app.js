@@ -75,6 +75,24 @@ app.post("/api/update/:id", (req, res) => {
     });
 });
 
+app.post("/api/insert/", (req, res) => {
+    if (req.body.startDateAct === "") {
+        req.body.startDateAct = null
+    }
+    if (req.body.endDateAct === "") {
+        req.body.endDateAct = null
+    }
+
+    const sql = "INSERT task SET ?";
+    con.query(sql, req.body, (error, results) => {
+        if (error) {
+            console.error(error);
+            res.status(500).json({ error: "Internal server error" });
+        }
+        res.json(results);
+    });
+});
+
 app.listen(port, () => {
     console.log(`Express server listening at http://localhost:${port}`);
 });
