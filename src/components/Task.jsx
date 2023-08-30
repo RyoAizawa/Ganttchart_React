@@ -143,13 +143,10 @@ export const Task = (props) => {
                 const formattedStDateAct = dateTimeFormatJP.format(
                     new Date(actStart)
                 );
-                let display = ""
+                let display = "";
                 if (formattedColDate === formattedStDateAct) {
                     actBar = (
-                        <ActBar
-                            width={`15px`}
-                            display={`${display}`}
-                        ></ActBar>
+                        <ActBar width={`15px`} display={`${display}`}></ActBar>
                     );
                 }
             }
@@ -303,8 +300,8 @@ export const Task = (props) => {
         }
     };
 
-    const editClick = async (id, title, name) => {
-        const contentArray = {
+    const editClick = (id, title, name) => {
+        const contentObj = {
             id: id,
             title: title,
             name: name,
@@ -315,7 +312,7 @@ export const Task = (props) => {
             status: selectRef.current.value,
             progBarValue: progBarRange.current.value,
         };
-        props.handleEdit(contentArray);
+        props.handleEdit(contentObj);
     };
 
     return (
@@ -342,7 +339,11 @@ export const Task = (props) => {
                     <Btn
                         color={"#00a903"}
                         onClick={() =>
-                            editClick(props.task.id, props.task.title, props.task.name)
+                            editClick(
+                                props.task.id,
+                                props.task.title,
+                                props.task.name
+                            )
                         }
                     >
                         編集
@@ -362,7 +363,7 @@ export const Task = (props) => {
                 >
                     {props.task.title}
                 </TaskTitle>
-                <Td>{props.task.name}</Td>
+                <Td className="name">{props.task.name}</Td>
                 <Td>
                     <InputRange
                         ref={progBarRange}
@@ -436,11 +437,14 @@ const Btn = styled.button`
 `;
 
 const Td = styled.td`
-    padding: 10px;
+    padding: 7px;
     border: 1px solid #aaa;
     text-align: center;
     vertical-align: middle;
     background-color: ${(props) => (props.color ? props.color : "")};
+    &.name {
+        min-width: 50px;
+    }
 `;
 
 const DateTd = styled.td`
@@ -451,7 +455,7 @@ const DateTd = styled.td`
 
 const TaskTitle = styled(Td)`
     text-align: left;
-    min-width: 300px;
+    min-width: 200px;
     text-indent: ${(props) => (props.$indent ? props.$indent : 0)};
 `;
 
@@ -459,7 +463,7 @@ const InputDate = styled.input`
     max-width: 100px;
 `;
 const InputRange = styled.input`
-    max-width: 60px;
+    max-width: 50px;
 `;
 
 const PlanBar = styled.div`
@@ -470,7 +474,7 @@ const PlanBar = styled.div`
     height: 50%;
     transform: translateY(-50%);
     background: #93bef3;
-    z-index: 0;
+    z-index: -1;
 `;
 
 const ActBar = styled.div`

@@ -1,7 +1,8 @@
+import React from "react"
 import styled from "styled-components";
 
-export const TaskHeader = (props) => {
-
+// eslint-disable-next-line react/display-name
+const TaskHeader = React.memo((props) => {
     const getyearAndMonth = (dates) => {
         const array = dates.map((elem) => {
             const year = new Date(elem).getFullYear();
@@ -10,6 +11,7 @@ export const TaskHeader = (props) => {
         });
         return array;
     };
+
     // YYYY/MMの形で年月を取得
     const yearAndMonthArray = getyearAndMonth(props.fullDateArray);
     // YYYY/MMのユニークな値を配列に取得
@@ -20,12 +22,8 @@ export const TaskHeader = (props) => {
             <tr>
                 <Th rowSpan="3"></Th>
                 <Th rowSpan="3"></Th>
-                <Th rowSpan="3">
-                    No
-                </Th>
-                <Th rowSpan="3">
-                    作業名
-                </Th>
+                <Th rowSpan="3">No</Th>
+                <Th rowSpan="3">作業名</Th>
                 <Th rowSpan="3">担当者</Th>
                 <Th rowSpan="3">進捗率</Th>
                 <Th rowSpan="3">状況</Th>
@@ -65,11 +63,7 @@ export const TaskHeader = (props) => {
                     let colDates = [];
                     props.fullDateArray.forEach((elem, i) => {
                         const date = new Date(elem).getDate();
-                        colDates.push(
-                            <AddTh key={i}>
-                                {date}
-                            </AddTh>
-                        );
+                        colDates.push(<AddTh key={i}>{date}</AddTh>);
                     });
                     return colDates;
                 })()}
@@ -88,14 +82,18 @@ export const TaskHeader = (props) => {
                     ];
                     props.fullDateArray.forEach((elem, i) => {
                         const day = new Date(elem).getDay();
-                        colDays.push(<AddTh key={i}><Num>{weekOfDays[day]}</Num></AddTh>);
+                        colDays.push(
+                            <AddTh key={i}>
+                                <Num>{weekOfDays[day]}</Num>
+                            </AddTh>
+                        );
                     });
                     return colDays;
                 })()}
             </tr>
         </>
     );
-};
+});
 
 const Th = styled.th`
     padding: 5px;
@@ -111,7 +109,7 @@ const AddTh = styled.th`
 `;
 
 const Num = styled.div`
-    width: 20px;
+    width: 15px;
     text-align: center;
     vertical-align: middle;
 `;

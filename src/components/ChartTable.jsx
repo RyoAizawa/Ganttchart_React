@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import axios from "axios";
 import Task from "./Task";
 import TaskHeader from "./TaskHeader";
@@ -25,7 +25,7 @@ export const ChartTable = (props) => {
     };
 
     const handleClose = (process) => {
-        process === "edit" ? setIsShowEdit(false) : setIsShowAdd(false)
+        process === "edit" ? setIsShowEdit(false) : setIsShowAdd(false);
     };
 
     useEffect(() => {
@@ -43,7 +43,6 @@ export const ChartTable = (props) => {
 
     useEffect(() => {
         indentControl(props.indentProcess);
-        return () => {};
     }, [props.indentProcess]);
 
     const useFetch = axios.create({
@@ -55,30 +54,32 @@ export const ChartTable = (props) => {
         timeout: 2000,
     });
 
-    // ガントチャートに出力する日数
-    const columnsValue = 30;
-    // 当日から何日前からの日付けを出力するか指定
-    const daysAgo = 15;
+    const fullDate = useMemo(() => {
+        // ガントチャートに出力する日数
+        const columnsValue = 30;
+        // 当日から何日前からの日付けを出力するか指定
+        const daysAgo = 15;
 
-    // テーブルヘッダ表示の日付を出力
-    const today = new Date();
-    let colDates = [];
-    // 指定した日数前から、指定した日数分日付けを配列に取得する
-    for (let i = -daysAgo; i < columnsValue - daysAgo; i++) {
-        const newDate = new Date();
-        newDate.setDate(today.getDate() + i);
-        colDates.push(newDate);
-    }
-
-    const fullDateArray = [];
-    // 整合性を取るためにYYYY/MM/DDのデータを指定日数分作成する
-    colDates.forEach((date) => {
-        const y = date.getFullYear();
-        const m = date.getMonth() + 1;
-        const d = date.getDate();
-        const fullDate = `${y}/${m}/${d}`;
-        fullDateArray.push(fullDate);
-    });
+        // テーブルヘッダ表示の日付を出力
+        const today = new Date();
+        let colDates = [];
+        // 指定した日数前から、指定した日数分日付けを配列に取得する
+        for (let i = -daysAgo; i < columnsValue - daysAgo; i++) {
+            const newDate = new Date();
+            newDate.setDate(today.getDate() + i);
+            colDates.push(newDate);
+        }
+        const fullDateArray = [];
+        // 整合性を取るためにYYYY/MM/DDのデータを指定日数分作成する
+        colDates.forEach((date) => {
+            const y = date.getFullYear();
+            const m = date.getMonth() + 1;
+            const d = date.getDate();
+            const fullDate = `${y}/${m}/${d}`;
+            fullDateArray.push(fullDate);
+        });
+        return fullDateArray
+    },[]);
 
     // テーブル行がクリックされたときの処理
     const handleRowClick = (index) => {
@@ -140,7 +141,7 @@ export const ChartTable = (props) => {
         <>
             <Table>
                 <Thead>
-                    <TaskHeader fullDateArray={fullDateArray} />
+                    <TaskHeader fullDateArray={fullDate} />
                 </Thead>
                 <Tbody>
                     {tasks.map((task, index) => {
@@ -156,7 +157,7 @@ export const ChartTable = (props) => {
                                 setTableData={setTableData}
                                 tableData={tableData}
                                 handleTableData={handleTableData}
-                                fullDateArray={fullDateArray}
+                                fullDateArray={fullDate}
                                 handleEdit={handleEdit}
                                 useFetch={useFetch}
                             />
@@ -164,6 +165,11 @@ export const ChartTable = (props) => {
                     })}
                 </Tbody>
             </Table>
+            <AddBtn>
+                <button onClick={() => setIsShowAdd(true)}>
+                    新規タスクの追加
+                </button>
+            </AddBtn>
             <ModalWindow
                 process={"edit"}
                 isShow={isShowEdit}
@@ -171,11 +177,6 @@ export const ChartTable = (props) => {
                 editContent={editContent}
                 useFetch={useFetch}
             />
-            <AddBtn>
-                <button onClick={() => setIsShowAdd(true)}>
-                    新規タスクの追加
-                </button>
-            </AddBtn>
             <ModalWindow
                 process={"add"}
                 isShow={isShowAdd}

@@ -11,8 +11,14 @@ const GlobalStyle = createGlobalStyle`
     *, *::after, *::before {
         font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN",
         "Hiragino Sans", Meiryo, sans-serif;
-        scroll-behavior: smooth;
     }
+    html {
+        font-size: 62.5%;
+    }
+    body,input,select {
+        font-size: 1.2rem;
+    }
+
 `;
 const fetcher = (...args) => fetch(...args).then((res) => res.json());
 

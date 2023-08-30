@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { styled } from "styled-components";
 
-const ModalWindow = (props) => {
+// eslint-disable-next-line react/display-name
+const ModalWindow = React.memo((props) => {
     let title = "";
     let btnText = "";
     if (props.process === "edit") {
@@ -66,9 +67,8 @@ const ModalWindow = (props) => {
             startDateActRef.current.value = props.editContent.startDateAct;
             endDateActRef.current.value = props.editContent.endDateAct;
             selectRef.current.value = props.editContent.status;
-        }
-        else {
-            progBarRef.current.value = 0
+        } else {
+            progBarRef.current.value = 0;
         }
     };
 
@@ -208,7 +208,7 @@ const ModalWindow = (props) => {
                             <FlexArea>
                                 <div>
                                     <PItem>進捗率</PItem>
-                                    <p>{progress}%</p>
+                                    <Progress>{progress}%</Progress>
                                     <FormInput
                                         type="range"
                                         ref={progBarRef}
@@ -289,7 +289,7 @@ const ModalWindow = (props) => {
             </StyledModalWindow>
         </>
     );
-};
+});
 
 const StyledModalWindow = styled.div`
     ${({ $isClose, $isShow }) =>
@@ -319,7 +319,7 @@ const Overlay = styled.div`
     bottom: -100vh;
     right: -100vw;
     transform: translateY(50px);
-    z-index: 2;
+    z-index: 9;
 `;
 
 const ContentWrapper = styled.div`
@@ -375,7 +375,7 @@ const Button = styled.button`
 `;
 
 const Title = styled.h2`
-    font-size: 2rem;
+    font-size: 3rem;
     margin-bottom: 30px;
 `;
 
@@ -385,27 +385,31 @@ const Form = styled.form`
 
 const PItem = styled.p`
     font-weight: bold;
-    font-size: 1.2rem;
+    font-size: 1.8rem;
     padding: 20px 0 15px 0px;
 `;
 
 const FormInputText = styled.input`
     box-sizing: border-box;
-    font-size: 1.2rem;
+    font-size: 1.6rem;
     height: 35px;
     width: 100%;
 `;
 
+const Progress = styled.p`
+    font-size: 1.6rem;
+`;
+
 const FormInputSelect = styled.select`
     box-sizing: border-box;
-    font-size: 1.2rem;
+    font-size: 1.6rem;
     height: 35px;
     width: 100%;
 `;
 
 const FormInput = styled.input`
     width: 100%;
-    font-size: 1rem;
+    font-size: 1.6rem;
     height: 35px;
 `;
 const FlexArea = styled.div`
@@ -422,7 +426,7 @@ const Submit = styled.p`
     text-align: center;
     margin-top: 30px;
     > button {
-        font-size: 1.2rem;
+        font-size: 2rem;
         padding: 5px 15px;
         background-color: #2057fe;
         color: #fff;
@@ -432,6 +436,7 @@ const Submit = styled.p`
 `;
 
 const Error = styled.span`
+    font-size: 1.6rem;
     color: red;
 `;
 export default ModalWindow;
